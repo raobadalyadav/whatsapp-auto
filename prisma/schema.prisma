@@ -1,0 +1,82 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String     @id @default(uuid())
+  name          String?
+  email         String?    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String
+  contacts      Contact[]
+  templates     Template[]
+  schedules     Schedule[]
+}
+
+model Contact {
+  id        String   @id @default(uuid())
+  userId    String
+  name      String
+  phone     String
+  tags      String?  
+  notes     String?
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messageLogs MessageLog[]
+
+  @@index([userId, phone])
+}
+
+model Template {
+  id        String     @id @default(uuid())
+  userId    String
+  name      String
+  content   String
+  createdAt DateTime   @default(now())
+  
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  schedules Schedule[]
+}
+
+model Schedule {
+  id          String   @id @default(uuid())
+  userId      String
+  templateId  String
+  sendAt      DateTime
+  status      String   @default("PENDING") 
+  cronExpr    String?
+  createdAt   DateTime @default(now())
+
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  template    Template   @relation(fields: [templateId], references: [id])
+  logs        MessageLog[]
+
+  @@index([status, sendAt])
+}
+
+model MessageLog {
+  id          String   @id @default(uuid())
+  scheduleId  String
+  contactId   String
+  status      String   
+  wabaMsgId   String?
+  error       String?
+  createdAt   DateTime @default(now())
+
+  schedule    Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  contact     Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@index([wabaMsgId])
+}
