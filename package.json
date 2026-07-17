@@ -4,10 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev --webpack",
-    "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "seed": "npx tsx seed.ts"
+    "seed": "npx tsx seed.ts",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
